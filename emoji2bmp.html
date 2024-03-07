@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoji to Image</title>
+<style>
+    canvas {
+        border: 1px solid black;
+    }
+</style>
+</head>
+<body>
+<canvas id="emojiCanvas" width="48" height="48"></canvas>
+<script>
+// 获取 Canvas 元素和上下文
+var canvas = document.getElementById('emojiCanvas');
+var ctx = canvas.getContext('2d');
+
+// 设置背景颜色
+ctx.fillStyle = 'white';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// 绘制 Emoji 字符
+var emojiText = '😀'; // 在这里替换为你想要绘制的 Emoji 字符
+ctx.font = '36px Arial'; // 设置字体和大小
+ctx.textBaseline = 'middle';
+ctx.textAlign = 'center';
+ctx.fillStyle = 'black';
+ctx.fillText(emojiText, canvas.width / 2, canvas.height / 2 + 3);
+
+// 将 Canvas 中的内容转换为图片并保存
+var image = canvas.toDataURL('image/bmp');
+var link = document.createElement('a');
+link.download = 'emoji_image.bmp';
+link.href = image;
+link.click();
+</script>
+</body>
+</html>

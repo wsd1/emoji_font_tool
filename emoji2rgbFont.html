@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji to Image</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>emoji点阵转换测试工具，请在devtools中观察控制台输出</h3>
+    <p>This tool use canvas to dump emoji fonts to a rgb binary file. Result file can be used in embedded systems.</p>
+    <p>用canvas转换emoji的图标为rgb二进制文件，可用于各种嵌入式界面开发。</p>
+    <p>每个icon的映像可以单独下载，其中只含有RGB序列数据。合集文件在每一个映像之前有一个头部，结构如下。</p>
+    <pre>
+        ...
+        uint32 0x4A4F4D45;  //MAGIC: EMOJ
+        uint32 codepoint;
+        uint16 width;
+        uint16 height;
+        uint32 0x12345678;  //endian indicator
+        R G B R G B ...  #24x24 组 RGB
+        ...
+
+        # 24x24emoji: 16 + 24x24x3 = 1744 bytes
+
+    </pre>
+    <p>也支持输出其他尺寸的点阵，可以修改font_height和font_width。修改后，注意看一下console输出的字符图像是否合理。</p>
+
+    <canvas id="emojiCanvas" width="512" height="32"></canvas>
+    <script>
+        //有自己的emoji 请放在这里
+        const emojis = "⌚⌛⏩⏪⏫⏬⏰⏳☔☕☝♈♉♊♋♌♍♎♏♐♑♒♓⚓⚡⚪⚫⚽⚾⛅⛎⛔⛪⛲⛳⛵⛽✅✊✋✌✍❌❎❓❔❕❗➕➖➗➰➿⬛⬜⭐⭕🀄🅰🅱🅾🅿🆎🆑🆒🆓🆔🆕🆖🆗🆘🆙🆚🈁🈚🈯🈲🈳🈴🈵🈶🈸🈹🈺🉐🉑🌀🌁🌂🌃🌆🌇🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🌰🌱🌲🌳🌴🌵🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🎀🎁🎂🎅🎈🎉🎊🎌🎎🎏🎐🎑🎒🎓🎠🎡🎢🎣🎥🎦🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎷🎸🎺🎻🎽🎾🎿🏀🏂🏃🏄🏆🏇🏈🏉🏊🏠🏡🏢🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾👀👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💦💧💨💩💪💬💭💮💯💰💳💴💵💶💷💸💺💻💼💽💾💿📀📁📂📃📄📅📆📇📈📉📊📋📌📍📎📏📐📑📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳📴📶📷📹📺📻📼🔀🔁🔂🔃🔄🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔙🔚🔛🔜🔝🔞🔠🔡🔢🔣🔤🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🔴🔵🔶🔷🔸🔹🔺🔻🔼🔽🗻🗼🗽🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙅🙆🙇🙈🙉🙊🙋🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🦋";
+
+        //const emojis = "😀😁";
+
+        const font_height = font_width = 24; //想要修改输出icon尺寸，修改这里，并且修改 canvasCtx.font 字体也调大一点。
+        // 获取 Canvas 上下文对象
+        var canvas = document.getElementById('emojiCanvas');
+        var canvasCtx = canvas.getContext('2d');
+        // 设置全局透明度为0，使得 Canvas 全部内容变为透明
+        //canvasCtx.globalAlpha = 0;
+        canvasCtx.font = '20px Arial'; // 设置字体和大小
+        canvasCtx.textBaseline = 'middle';
+        canvasCtx.textAlign = 'center';
+        canvasCtx.fillStyle = 'black';
+        canvasCtx.willReadFrequently = true;
+        // 恢复全局透明度
+        //canvasCtx.globalAlpha = 1;
+
+
+        //return in form: 0000ABCD
+        function charToUnicodeStr(character) {
+            var unicode = character.codePointAt(0);
+            var hexString = unicode.toString(16).toUpperCase().padStart(8, '0');
+            return hexString;
+        }
+
+        function numToByteStr(number) {
+            // 将数字限制在 0 到 255 之间
+            var clampedNumber = Math.max(0, Math.min(255, number));
+            // 取整数部分并转换为两位十六进制形式
+            var integerPart = Math.floor(clampedNumber);
+            var hexString = integerPart.toString(16).toUpperCase().padStart(2, '0');
+            return hexString;
+        }
+
+        function numToByte(number) {
+            // 将数字限制在 0 到 255 之间
+            var clampedNumber = Math.max(0, Math.min(255, number));
+            // 取整数部分并转换为两位十六进制形式
+            return Math.floor(clampedNumber);
+        }
+
+        function generateEmojiMatrix(emojiText) {
+            console.log(emojiText + "unicode code point is:0x" + charToUnicodeStr(emojiText));
+
+            // 清空 Canvas
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+            canvasCtx.fillText(emojiText, canvas.width / 2, canvas.height / 2);
+
+            // 获取图像的像素数据
+            var imageData = canvasCtx.getImageData((canvas.width - font_width)/ 2 , (canvas.height - font_height)/ 2 , font_width , font_height);
+            var pixels = imageData.data;
+
+            var pixelRGBString = '';
+            const pixelRGBArray = [];
+
+            // 输出点阵数据
+            for (var y = 0; y < font_height; y++) {
+                var row = '|';
+                for (var x = 0; x < font_width; x++) {
+                    var index = (y * font_width + x) * 4;
+                    var r = pixels[index];
+                    var g = pixels[index + 1];
+                    var b = pixels[index + 2];
+                    var alpha = pixels[index + 3];
+                    r *= alpha / 256;
+                    g *= alpha / 256;
+                    b *= alpha / 256;
+
+                    var gray = (r + g + b) / 3;
+                    if (gray < 5) {
+                        row += '  ';
+                    } else if (gray < 64) {
+                        row += '..';
+                    } else if (gray < 128) {
+                        row += '||';
+                    } else if (gray < 192) {
+                        row += '++';
+                    } else {
+                        row += '##';
+                    }
+
+                    pixelRGBString += numToByteStr(r) + numToByteStr(g) + numToByteStr(b);
+
+                    pixelRGBArray.push(numToByte(r));
+                    pixelRGBArray.push(numToByte(g));
+                    pixelRGBArray.push(numToByte(b));
+
+                }
+                console.log(row + '|');
+            }
+
+            const codePointStr = charToUnicodeStr(emojiText);
+
+            return {
+                codePointStr,
+                encoding: emojiText.codePointAt(0),
+                height: font_height,
+                width: font_width,
+                rgbData: pixelRGBArray,
+                rgbString: pixelRGBString
+            }
+
+        }
+
+        const emjlist = Array.from(emojis);
+
+        //通过unicode数值大小，升序排列
+        emjlist.sort(function(a,b){
+            r = a.codePointAt(0) - b.codePointAt(0);
+            if(r == 0)console.log(a + "重复");
+            return r;
+        })
+
+        //下面开始采样输出
+        const output = [];
+        for (var i = 0; i < emjlist.length; i++) {
+
+            const emj = emjlist[i];
+            const ret = generateEmojiMatrix(emj);
+            const fontSize = ret.width * ret.height * 3;
+
+            //8 个一组,组织可以直接下载的RGB 二进制文件.
+            if (i % 8 == 0)
+                document.body.appendChild(document.createElement('br'));
+
+            const blob = new Blob([new Uint8Array(ret.rgbData)], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'emj' + ret.width + '_' + ret.codePointStr;
+            link.innerHTML = ' 【' + emj + '】' + ret.codePointStr;
+            document.body.appendChild(link);
+            //link.click(); 内容太多 别自动下载
+
+            //document.body.removeChild(link);
+            //URL.revokeObjectURL(url);
+
+            //组织当前font头部,格式看网页开头说明
+            var fontHeadByteArray = new Uint8Array(16);
+            var dataView = new DataView(fontHeadByteArray.buffer);
+            dataView.setUint32(0, 0x4A4F4D45, true);    //little endian "EMOJ"
+            dataView.setUint32(4, ret.encoding, true);
+            dataView.setUint16(8, ret.width, true);
+            dataView.setUint16(10, ret.height, true);
+            dataView.setUint32(12, 0xdeadbeef, true);
+
+            //加入输出
+            output.push(...Array.from(fontHeadByteArray));
+
+            //font内容输出
+            output.push(...ret.rgbData);
+
+        }
+
+        document.body.appendChild(document.createElement('hr'));
+
+        //输出大font文件 下载
+        const blob = new Blob([new Uint8Array(output)], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'emj' + font_width + 'x' + font_height + '_' + emjlist.length;
+        link.innerHTML = ' 【' + emjlist.length + '个emoji合集二进制映像下载】';
+        document.body.appendChild(link);
+
+
+        console.log("升序排列的emoji如下，可以查重优化");
+        console.log(emjlist.join(''));
+
+    </script>
+</body>
+
+</html>
